@@ -2,7 +2,7 @@
 const express = require('express')
 const cors = require('cors')
 const exphbs  = require('express-handlebars');
-//require('dotenv').config();
+require('dotenv').config();
 
 // importamos el router
 const router = require('./src/routes')
