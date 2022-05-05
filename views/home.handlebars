@@ -224,7 +224,7 @@ a{color:inherit;text-decoration:none}
         body: JSON.stringify(newUser)
     };
 
-    fetch("http://todo-api-team2.mybluemix.net/api/users", requestOptions)
+    fetch("https://todo-api-team2.herokuapp.com/api/users", requestOptions)
         .then(response => response.text())
         .then(result => console.log(result))
         .catch(error => console.log('error', error));
