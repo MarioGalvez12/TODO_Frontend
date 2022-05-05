@@ -1,7 +1,9 @@
 const router = require('express').Router();
 
 router.route("/").get((req,res)=>{
-    res.render("home");
+    res.render("home", {
+        API_URL: process.env.API_URL
+    });
 })
 
 router.route("/location").post((req,res)=>{
