@@ -1,0 +1,25 @@
+{
+  "name": "forense_web_location",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/casillas-m/Forense_WEB_Location.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/casillas-m/Forense_WEB_Location/issues"
+  },
+  "homepage": "https://github.com/casillas-m/Forense_WEB_Location#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-handlebars": "^5.3.3"
+  }
+}
