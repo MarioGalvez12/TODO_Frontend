@@ -1,5 +1,5 @@
 {
-  "name": "forense_web_location",
+  "name": "bishop_fox_dream_team_mmrkh",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,19 +9,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/casillas-m/Forense_WEB_Location.git"
+    "url": "git+https://github.com/casillas-m/todoList_backend.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/casillas-m/Forense_WEB_Location/issues"
+    "url": "https://github.com/casillas-m/todoList_backend/issues"
   },
-  "homepage": "https://github.com/casillas-m/Forense_WEB_Location#readme",
+  "homepage": "https://github.com/casillas-m/todoList_backend/blob/main/README.md",
   "dependencies": {
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.17.1",
     "express-handlebars": "^5.3.3",
+    "node-fetch": "^2.6.7",
     "toastr": "^2.1.4"
   }
 }

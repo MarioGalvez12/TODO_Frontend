@@ -113,7 +113,7 @@
 			.then(result => {
 				switch (status) {
 					case 200:
-						localStorage.setItem("Authorization", JSON.parse(result).authorization)
+						document.cookie = "Authorization=" + JSON.parse(result).authorization
 						window.location.href = "/tasks"
 						break;
 					default:
