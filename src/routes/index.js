@@ -22,10 +22,22 @@ router.route("/tasks").get((req, res) => {
         .then(result => {
             switch (status) {
                 case 200:
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                    ];
+                    let tasks = JSON.parse(result).tasks
+                    tasks.forEach(e => {
+                        let createdAt = new Date(e.createdAt)
+                        e.createdAt = `${monthNames[createdAt.getMonth()]} ${createdAt.getDate()} ${createdAt.getFullYear()}`
+                        let starTime = new Date(e.starTime)
+                        e.starTime = `${monthNames[starTime.getMonth()]} ${starTime.getDate()} ${starTime.getFullYear()}`
+                        let endTime = new Date(e.endTime)
+                        e.endTime = `${monthNames[endTime.getMonth()]} ${endTime.getDate()} ${endTime.getFullYear()}`
+                    });
                     res.render("tasks", {
                         layout: "tasksLayout",
                         API_URL: process.env.API_URL,
-                        tasks: JSON.parse(result).tasks
+                        tasks
                     });
                     break;
                 default:

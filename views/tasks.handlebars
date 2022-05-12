@@ -3,7 +3,7 @@
     <div class="card-hover-shadow-2x mb-3 card">
       <div class="card-header-tab card-header">
         <div class="card-header-title font-size-lg text-capitalize font-weight-normal">
-            <i class="fa fa-tasks"></i>&nbsp;Task Lists
+          <i class="fa fa-tasks"></i>&nbsp;Task Lists
         </div>
       </div>
       <div class="scroll-area-sm">
@@ -18,8 +18,42 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left mr-2">
                         <div class="custom-checkbox custom-control">
-                          <input class="custom-control-input" id="checkbox{{@index}}" type="checkbox">
+                          <input class="custom-control-input" id="checkbox{{@index}}" onclick="changeCompleted('{{this._id}}',this)" completed="{{this.completed}}" type="checkbox">
                           <label class="custom-control-label" for="checkbox{{@index}}">&nbsp;</label>
+                        </div>
+                      </div>
+                      <div class="modal fade" id="Modal{{@index}}" tabindex="-1" role="dialog"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="exampleModalLabel">{{this.title}}</h5>
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                              </button>
+                            </div>
+                            <div class="modal-body">
+                              Description:<br>
+                              <div class="card bg-secondary text-white">
+                                <div class="card-body">{{this.text}}</div>
+                              </div> 
+                              <br><br>
+                              {{this.completed}}
+                              Time estimate: {{this.timeEstimate}}
+                              <br>
+                              Start time: {{this.starTime}}
+                              <br>
+                              End time: {{this.endTime}}
+                              <br>
+                              {{!-- <img src="{{this.imageURL}}"> --}}
+                              <img src="https://seeklogo.com/images/T/twitter-icon-square-logo-108D17D373-seeklogo.com.png">
+                              <br> Created at: {{this.createdAt}}
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                              <button type="button" class="btn btn-primary">Save changes</button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div class="widget-content-left flex2">
@@ -27,16 +61,19 @@
                         <div class="widget-subheading">{{this.text}}</div>
                       </div>
                       <div class="widget-content-right">
-                        <button id="priorityUp"  class="border-0 btn-transition btn btn-outline-secondary">
+                        <button id="priorityUp{{@index}}" onclick="changePriority('{{this._id}}','up')"
+                          class="border-0 btn-transition btn btn-outline-secondary">
                           <i class="fa-solid fa-arrow-up"></i>
                         </button>
-                        <button id="priorityDown"  class="border-0 btn-transition btn btn-outline-secondary">
+                        <button id="priorityDown{{@index}}" onclick="changePriority('{{this._id}}','down')"
+                          class="border-0 btn-transition btn btn-outline-secondary">
                           <i class="fa-solid fa-arrow-down"></i>
                         </button>
-                        <button class="border-0 btn-transition btn btn-outline-primary">
+                        <button class="border-0 btn-transition btn btn-outline-primary" data-toggle="modal" data-target="#Modal{{@index}}">
                           <i class="fa-solid fa-ellipsis" style="color: black;"></i>
                         </button>
-                        <button id="delete{{@index}}" onclick="deleteTask('{{this._id}}')" class="border-0 btn-transition btn btn-outline-danger">
+                        <button id="delete{{@index}}" onclick="deleteTask('{{this._id}}')"
+                          class="border-0 btn-transition btn btn-outline-danger">
                           <i class="fa fa-trash"></i>
                         </button>
                       </div>
@@ -58,37 +95,119 @@
 </div>
 
 <script>
+  
+
   function deleteTask(idTask) {
     const parseCookie = str =>
       str
-      .split(';')
-      .map(v => v.split('='))
-      .reduce((acc, v) => {
-        acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
-        return acc;
-      }, {});
-		let requestOptions = {
-			method: 'DELETE',
+        .split(';')
+        .map(v => v.split('='))
+        .reduce((acc, v) => {
+          acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
+          return acc;
+        }, {});
+    let requestOptions = {
+      method: 'DELETE',
       headers: {
         "Authorization": parseCookie(document.cookie).Authorization
       }
-		};
-		let status = 0;
-		fetch("{{API_URL}}" + "/api/tasks?idTask=" + idTask, requestOptions)
-			.then(response => {
-				status = response.status
-				return response.text()
-			})
-			.then(result => {
-				switch (status) {
-					case 200:
-						location.reload()
-						break;
-					default:
-						toastr.error(JSON.parse(result).message)
-						break;
-				}
-			})
-			.catch(error => toastr.error(error));
-	}
+    };
+    let status = 0;
+    fetch("{{API_URL}}" + "/api/tasks?idTask=" + idTask, requestOptions)
+      .then(response => {
+        status = response.status
+        return response.text()
+      })
+      .then(result => {
+        switch (status) {
+          case 200:
+            location.reload()
+            break;
+          default:
+            toastr.error(JSON.parse(result).message)
+            break;
+        }
+      })
+      .catch(error => toastr.error(error));
+  }
+  
+  function changeCompleted(idTask, checkbox) {
+    console.log(`Cambiando ${idTask} a ${checkbox.checked}`)
+    let checked = checkbox.checked;
+    const parseCookie = str =>
+      str
+        .split(';')
+        .map(v => v.split('='))
+        .reduce((acc, v) => {
+          acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
+          return acc;
+        }, {});
+    let requestOptions = {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": parseCookie(document.cookie).Authorization
+      },
+      body: JSON.stringify({
+        completed: checked
+      })
+    };
+    let status = 0;
+    fetch("{{API_URL}}" + "/api/tasks?idTask=" + idTask, requestOptions)
+      .then(response => {
+        status = response.status
+        return response.text()
+      })
+      .then(result => {
+        if(status!=200)toastr.error(JSON.parse(result).message)
+      })
+      .catch(error => toastr.error(error));
+  }
+
+  function changePriority(idTask, type) {
+    const parseCookie = str =>
+      str
+        .split(';')
+        .map(v => v.split('='))
+        .reduce((acc, v) => {
+          acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
+          return acc;
+        }, {});
+    let requestOptions = {
+      method: 'POST',
+      headers: {
+        "Authorization": parseCookie(document.cookie).Authorization,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        idTask,
+        type
+      })
+    };
+    let status = 0;
+    fetch("{{API_URL}}" + "/api/tasks/priority", requestOptions)
+      .then(response => {
+        status = response.status
+        return response.text()
+      })
+      .then(result => {
+        switch (status) {
+          case 200:
+            location.reload()
+            break;
+          case 500:
+            toastr.error("Action not permited")
+            break;
+          default:
+            toastr.error(JSON.parse(result).message)
+            break;
+        }
+      })
+      .catch(error => toastr.error(error));
+  }
+
+  function showDetails() {
+
+  }
+
 </script>

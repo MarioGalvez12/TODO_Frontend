@@ -7,6 +7,8 @@ body {
     color: #495057;
     text-align: left;
     background-color: #646b83;
+    background: rgb(2,0,36);
+    background: linear-gradient(90deg, rgb(85, 84, 107) 0%, rgb(132, 132, 255) 26%, rgb(122, 233, 255) 100%);
 }
 
 i {
