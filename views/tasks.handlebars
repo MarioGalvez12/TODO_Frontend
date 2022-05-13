@@ -13,7 +13,7 @@
           <div class="modal-dialog" role="document">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Create a Task</h5>
+                <h5 class="modal-title" id="addModalTitle">Create a Task</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -32,6 +32,7 @@
                 <div class="form-group">
                   <label for="addEstimated">Estimated time</label>
                   <input type="time" class="form-control" id="addEstimated">
+                  <small class="form-text text-muted">Hours:Minutes</small>
                 </div>
                 <div class="form-group">
                   <label for="addStart">Task start time</label>
@@ -48,7 +49,7 @@
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="addTask()">Create task</button>
+                <button id="addButton" type="button" class="btn btn-primary" onclick="addTask()">Create task</button>
               </div>
             </div>
           </div>
@@ -74,21 +75,28 @@
                       <div class="modal fade" id="Modal{{@index}}" tabindex="-1" role="dialog"
                         aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div class="modal-dialog" role="document">
-                          <div class="card">
+                          <div class="modal-content">
                             <img class="card-img-top" src="{{this.imageURL}}" alt="">
-                            <div class="card-body">
-                              <h5 class="card-title">{{this.title}}</h5>
-                              <p class="card-text">{{this.text}}</p>
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="exampleModalLabel">{{this.title}}</h5>
                             </div>
-                            <ul class="list-group list-group-flush">
-                              {{#if this.timeEstimate}}<li class="list-group-item">Time estimate: {{this.timeEstimate}}</li>{{/if}}
-                              {{#if this.starTime}}<li class="list-group-item">Start time: {{this.starTime}}</li>{{/if}}
-                              {{#if this.endTime}}<li class="list-group-item">End time: {{this.endTime}}</li>{{/if}}
-                              <li class="list-group-item">Created at: {{this.createdAt}}</li>
-                            </ul>
-                            <div class="card-body">
+                            <div class="modal-body">
+                              <p class="card-text">{{this.text}}</p>
+                              <ul class="list-group list-group-flush">
+                                {{#if this.timeEstimate}}<li class="list-group-item">Time estimate:
+                                  {{this.timeEstimateText}}
+                                </li>{{/if}}
+                                {{#if this.starTime}}<li class="list-group-item">Start time: {{this.starTime}}</li>
+                                {{/if}}
+                                {{#if this.endTime}}<li class="list-group-item">End time: {{this.endTime}}</li>{{/if}}
+                                <li class="list-group-item">Created at: {{this.createdAt}}</li>
+                              </ul>
+                            </div>
+                            <div class="modal-footer">
                               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                              <button type="button" class="btn btn-primary">Edit Task</button>
+                              <button type="button" class="btn btn-primary"
+                                onclick="editModal('{{this.all}}','Modal{{@index}}')">Edit
+                                task</button>
                             </div>
                           </div>
                         </div>
@@ -126,7 +134,8 @@
       </div>
       <div div class="d-block text-right card-footer">
         <button onclick="logout()" class="mr-2 btn btn-link btn-sm">Log out</button>
-        <button class="btn btn-primary" data-toggle="modal" data-target="#addModal">Add Task</button>
+        {{!-- <button class="btn btn-primary" data-toggle="modal" data-target="#addModal">Add Task</button> --}}
+        <button class="btn btn-primary" onclick="addModal()">Add Task</button>
       </div>
     </div>
   </div>
@@ -152,18 +161,34 @@
     window.location.href = "/"
   }
 
+  function addModal() {
+    $("#addModal").modal('show');
+    document.querySelector("#addModalTitle").innerHTML = "Create a Task"
+    document.querySelector("#addButton").innerHTML = "Create Task"
+    document.querySelector("#addButton").setAttribute("onclick", "addTask()");
+    document.querySelector("#addTitle").value = ""
+    document.querySelector("#addDescription").value = ""
+    document.querySelector("#addEstimated").value = ""
+    document.querySelector("#addStart").value = ""
+    document.querySelector("#addEnd").value = ""
+    document.querySelector("#addImage").value = ""
+  }
+
   function addTask() {
     if (document.querySelector("#addTitle").value == "") return toastr.error("Title field is required")
+    let timeEstimateArray = document.querySelector("#addEstimated").value.split(":");
+    let starTimeArray = document.querySelector("#addStart").value.split(":");
+    let endTimeArray = document.querySelector("#addEnd").value.split(":");
     let body = {
       title: document.querySelector("#addTitle").value,
       text: document.querySelector("#addDescription").value,
-      timeEstimate: document.querySelector("#addEstimated").value,
-      starTime: document.querySelector("#addStart").value,
-      endTime: document.querySelector("#addEnd").value,
+      timeEstimate: parseInt(timeEstimateArray[0]) * 60 * 60 * 1000 + parseInt(timeEstimateArray[1]) * 60 * 1000,
+      starTime: parseInt(starTimeArray[0]) * 60 * 60 * 1000 + parseInt(starTimeArray[1]) * 60 * 1000,
+      endTime: parseInt(endTimeArray[0]) * 60 * 60 * 1000 + parseInt(endTimeArray[1]) * 60 * 1000,
       imageURL: document.querySelector("#addImage").value
     }
-    Object.keys(body).forEach(key=>{
-      if(body[key]=="") delete body[key]
+    Object.keys(body).forEach(key => {
+      if (body[key] == "") delete body[key]
     });
     let requestOptions = {
       method: 'POST',
@@ -182,6 +207,75 @@
       .then(result => {
         switch (status) {
           case 201:
+            location.reload()
+            break;
+          default:
+            toastr.error(JSON.parse(result).message)
+            break;
+        }
+      })
+      .catch(error => toastr.error(error));
+  }
+
+  function editModal(task, idModal) {
+    task = JSON.parse(task);
+    $(`#${idModal}`).modal('hide');
+    $("#addModal").modal('show');
+    document.querySelector("#addModalTitle").innerHTML = "Edit Task"
+    document.querySelector("#addButton").innerHTML = "Edit Task"
+    document.querySelector("#addButton").setAttribute("onclick", `editTask('${task._id}')`);
+    document.querySelector("#addTitle").value = task.title;
+    document.querySelector("#addDescription").value = task.text;
+    if (task.timeEstimate != 0) {
+      document.querySelector("#addEstimated").value =
+        `${("000"+String(Math.floor(task.timeEstimate/(1000*60*60)))).slice(-2)}:${("000"+String(Math.floor((task.timeEstimate%(1000*60*60))/(1000*60)))).slice(-2)}`;
+    } else document.querySelector("#addEstimated").value = ""
+    if (task.starTime != 0) {
+      let date = new Date(task.starTime)
+      document.querySelector("#addStart").value = date.toISOString().split('T')[0];
+    } else document.querySelector("#addStart").value = ""
+    if (task.endTime != 0) {
+      let date = new Date(task.endTime)
+      document.querySelector("#addEnd").value = date.toISOString().split('T')[0];
+    } else document.querySelector("#addEnd").value = ""
+    document.querySelector("#addImage").value = task.imageURL;
+  }
+
+  function editTask(idTask) {
+    if (document.querySelector("#addTitle").value == "") return toastr.error("Title field is required")
+    let timeEstimateArray = document.querySelector("#addEstimated").value.split(":");
+    let body = {
+      title: document.querySelector("#addTitle").value,
+      text: document.querySelector("#addDescription").value,
+      timeEstimate: timeEstimateArray.length > 1 ? parseInt(timeEstimateArray[0]) * 60 * 60 * 1000 + parseInt(
+        timeEstimateArray[1]) * 60 * 1000 : 0,
+      imageURL: document.querySelector("#addImage").value
+    }
+    if(document.querySelector("#addStart").value != "") {
+      let time = new Date(document.querySelector("#addStart").value)
+      body.starTime = time.getTime()
+    }
+    if(document.querySelector("#addEnd").value != "") {
+      let time = new Date(document.querySelector("#addEnd").value)
+      body.endTime = time.getTime()
+    }
+    let requestOptions = {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": parseCookie(document.cookie).Authorization
+      },
+      body: JSON.stringify(body)
+    };
+    let status = 0;
+    fetch("{{API_URL}}" + "/api/tasks?idTask=" + idTask, requestOptions)
+      .then(response => {
+        status = response.status
+        return response.text()
+      })
+      .then(result => {
+        switch (status) {
+          case 200:
             location.reload()
             break;
           default:
