@@ -7,6 +7,52 @@
         </div>
       </div>
       <div class="scroll-area-sm">
+        {{!-- Add Modal --}}
+        <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+          aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Create a Task</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="form-group">
+                  <label for="addTitle">Title</label>
+                  <input type="text" class="form-control" id="addTitle" placeholder="E.g. Buy Twitter">
+                  <small class="form-text text-muted">Required</small>
+                </div>
+                <div class="form-group">
+                  <label for="addDescription">Description</label>
+                  <textarea class="form-control" id="addDescription" rows="3"
+                    placeholder="E.g. Place an offer an leave"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="addEstimated">Estimated time</label>
+                  <input type="time" class="form-control" id="addEstimated">
+                </div>
+                <div class="form-group">
+                  <label for="addStart">Task start time</label>
+                  <input type="date" class="form-control" id="addStart">
+                </div>
+                <div class="form-group">
+                  <label for="addEnd">Task end time limit</label>
+                  <input type="date" class="form-control" id="addEnd">
+                </div>
+                <div class="form-group">
+                  <label for="addImage">Image URL</label>
+                  <input type="text" class="form-control" id="addImage" placeholder="E.g. https://image.com/image.jpg">
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="addTask()">Create task</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <perfect-scrollbar class="ps-show-limits">
           <div style="position: static;" class="ps ps--active-y">
             <div class="ps-content">
@@ -24,11 +70,12 @@
                           <label class="custom-control-label" for="checkbox{{@index}}">&nbsp;</label>
                         </div>
                       </div>
+                      {{!-- Main Modal --}}
                       <div class="modal fade" id="Modal{{@index}}" tabindex="-1" role="dialog"
                         aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div class="modal-dialog" role="document">
                           <div class="card">
-                            <img class="card-img-top" src="{{this.imageURL}}" alt="Card image cap">
+                            <img class="card-img-top" src="{{this.imageURL}}" alt="">
                             <div class="card-body">
                               <h5 class="card-title">{{this.title}}</h5>
                               <p class="card-text">{{this.text}}</p>
@@ -41,7 +88,7 @@
                             </ul>
                             <div class="card-body">
                               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                              <button type="button" class="btn btn-primary">Save changes</button>
+                              <button type="button" class="btn btn-primary">Edit Task</button>
                             </div>
                           </div>
                         </div>
@@ -78,8 +125,8 @@
         </perfect-scrollbar>
       </div>
       <div div class="d-block text-right card-footer">
-        <button class="mr-2 btn btn-link btn-sm">Cancel</button>
-        <button class="btn btn-primary">Add Task</button>
+        <button onclick="logout()" class="mr-2 btn btn-link btn-sm">Log out</button>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#addModal">Add Task</button>
       </div>
     </div>
   </div>
@@ -90,15 +137,62 @@
     e.checked = e.getAttribute("completed") == "true"
   })
 
+  function parseCookie(str) {
+    return str
+      .split(';')
+      .map(v => v.split('='))
+      .reduce((acc, v) => {
+        acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
+        return acc;
+      }, {});
+  }
+
+  function logout() {
+    document.cookie = "Authorization=; Path=/;"
+    window.location.href = "/"
+  }
+
+  function addTask() {
+    if (document.querySelector("#addTitle").value == "") return toastr.error("Title field is required")
+    let body = {
+      title: document.querySelector("#addTitle").value,
+      text: document.querySelector("#addDescription").value,
+      timeEstimate: document.querySelector("#addEstimated").value,
+      starTime: document.querySelector("#addStart").value,
+      endTime: document.querySelector("#addEnd").value,
+      imageURL: document.querySelector("#addImage").value
+    }
+    Object.keys(body).forEach(key=>{
+      if(body[key]=="") delete body[key]
+    });
+    let requestOptions = {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": parseCookie(document.cookie).Authorization
+      },
+      body: JSON.stringify(body)
+    };
+    let status = 0;
+    fetch("{{API_URL}}" + "/api/tasks", requestOptions)
+      .then(response => {
+        status = response.status
+        return response.text()
+      })
+      .then(result => {
+        switch (status) {
+          case 201:
+            location.reload()
+            break;
+          default:
+            toastr.error(JSON.parse(result).message)
+            break;
+        }
+      })
+      .catch(error => toastr.error(error));
+  }
+
   function deleteTask(idTask) {
-    const parseCookie = str =>
-      str
-        .split(';')
-        .map(v => v.split('='))
-        .reduce((acc, v) => {
-          acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
-          return acc;
-        }, {});
     let requestOptions = {
       method: 'DELETE',
       headers: {
@@ -126,14 +220,6 @@
 
   function changeCompleted(idTask, checkbox) {
     let checked = checkbox.checked;
-    const parseCookie = str =>
-      str
-        .split(';')
-        .map(v => v.split('='))
-        .reduce((acc, v) => {
-          acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
-          return acc;
-        }, {});
     let requestOptions = {
       method: 'PUT',
       headers: {
@@ -157,14 +243,6 @@
   }
 
   function changePriority(idTask, type) {
-    const parseCookie = str =>
-      str
-        .split(';')
-        .map(v => v.split('='))
-        .reduce((acc, v) => {
-          acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
-          return acc;
-        }, {});
     let requestOptions = {
       method: 'POST',
       headers: {
@@ -197,5 +275,4 @@
       })
       .catch(error => toastr.error(error));
   }
-
 </script>
