@@ -81,9 +81,9 @@
                               <p class="card-text">{{this.text}}</p>
                             </div>
                             <ul class="list-group list-group-flush">
-                              <li class="list-group-item">Time estimate: {{this.timeEstimate}}</li>
-                              <li class="list-group-item">Start time: {{this.starTime}}</li>
-                              <li class="list-group-item">End time: {{this.endTime}}</li>
+                              {{#if this.timeEstimate}}<li class="list-group-item">Time estimate: {{this.timeEstimate}}</li>{{/if}}
+                              {{#if this.starTime}}<li class="list-group-item">Start time: {{this.starTime}}</li>{{/if}}
+                              {{#if this.endTime}}<li class="list-group-item">End time: {{this.endTime}}</li>{{/if}}
                               <li class="list-group-item">Created at: {{this.createdAt}}</li>
                             </ul>
                             <div class="card-body">

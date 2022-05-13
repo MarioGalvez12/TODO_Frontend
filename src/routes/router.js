@@ -31,10 +31,14 @@ router.route("/tasks").get(authMiddleware.authMiddleware, (req, res) => {
                     tasks.forEach(e => {
                         let createdAt = new Date(e.createdAt)
                         e.createdAt = `${monthNames[createdAt.getMonth()]} ${createdAt.getDate()} ${createdAt.getFullYear()}`
-                        let starTime = new Date(e.starTime)
-                        e.starTime = `${monthNames[starTime.getMonth()]} ${starTime.getDate()} ${starTime.getFullYear()}`
-                        let endTime = new Date(e.endTime)
-                        e.endTime = `${monthNames[endTime.getMonth()]} ${endTime.getDate()} ${endTime.getFullYear()}`
+                        if(e.starTime>0){
+                            let starTime = new Date(e.starTime)
+                            e.starTime = `${monthNames[starTime.getMonth()]} ${starTime.getDate()} ${starTime.getFullYear()}`
+                        }
+                        if(e.endTime>0){
+                            let endTime = new Date(e.endTime)
+                            e.endTime = `${monthNames[endTime.getMonth()]} ${endTime.getDate()} ${endTime.getFullYear()}`
+                        }
                     });
                     res.render("tasks", {
                         layout: "tasksLayout",
