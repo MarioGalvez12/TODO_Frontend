@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 // importamos el router
-const router = require('./src/routes')
+const router = require('./src/routes/router.js')
 
 // de express nos traemos lo necesario
 const { json, urlencoded } = express
@@ -32,6 +32,7 @@ app.use(cookieParser());
 app.use(router)
 //Estáticas
 app.use('/public', express.static(__dirname + '/public'));
+app.use('*', (req, res) => res.render("404", {layout: "404Layout"}))
 
 // iniciamos nuestro server
 app.listen(PORT,HOST, () => { console.log(`Server listening on port ${PORT} and host ${HOST}`); })

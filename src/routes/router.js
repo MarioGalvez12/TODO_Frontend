@@ -1,12 +1,14 @@
 const fetch = require('node-fetch');
 const router = require('express').Router();
+const authMiddleware = require("../middlewares/auth.middleware");
 
-router.route("/").get((req, res) => {
+router.route("/").get(authMiddleware.authntMiddleware, (req, res) => {
     res.render("home", {
         API_URL: process.env.API_URL
     });
 })
-router.route("/tasks").get((req, res) => {
+
+router.route("/tasks").get(authMiddleware.authMiddleware, (req, res) => {
     let requestOptions = {
         method: 'GET',
         headers: {
@@ -48,10 +50,5 @@ router.route("/tasks").get((req, res) => {
         .catch(error => console.log(error));
 })
 
-router.route("/location").post((req, res) => {
-    console.log(req.headers)
-    console.log(req.body)
-    res.sendStatus(200);
-})
 
 module.exports = router;
